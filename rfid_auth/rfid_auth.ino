@@ -12,30 +12,31 @@ MFRC522::StatusCode auth_status;
 
 void setup(){
 
-  Serial.begin(9600);
-  SPI.begin();
-  mfrc522.PCD_Init();
-  delay(4);
-  pinMode(ENABLE_PIN, OUTPUT);
-  digitalWrite(ENABLE_PIN,LOW);
+  Serial.begin(9600); // Serial Frequency
+  SPI.begin();  // Initialize Serial Peripheral Interface
+  mfrc522.PCD_Init(); // Initialize reader
+  delay(4); // Ensure time to setup reader
+  pinMode(ENABLE_PIN, OUTPUT);  // Set digital pin behavior
+  digitalWrite(ENABLE_PIN,LOW); // Start drive disabled
   Serial.println(F("Ready."));
   
 }
 
 void read_data(){
-
-  //mfrc522.PICC_DumpDetailsToSerial(&(mfrc522.uid));
-  byte buffer[18] = {0};
-  /*byte keyarr1[6] = {0x00,0x00,0x00,0x00,0x00,0x00};
-  byte keyarr2[6] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};*/
+	
+  // Set to defaul Key
   for (byte i(0); i < 6; i++){
     key.keyByte[i] = 0xFF;
     
   }
-
+	
+  // Block to get key from
   byte block = 1;
+
+  // Authenticate
   auth_status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_B, block, &key, &(mfrc522.uid));
 
+  // Set pin high if authenticated
   if (auth_status == MFRC522::STATUS_OK){
     Serial.print(F("Good\n"));
     digitalWrite(ENABLE_PIN, HIGH);
@@ -44,32 +45,24 @@ void read_data(){
     Serial.print(F("Bad\n"));
   }
   
+  // Some debugging output
   Serial.print(mfrc522.GetStatusCodeName(auth_status));
   Serial.print(F("\n"));
   mfrc522.PCD_StopCrypto1();
 }
 
 void loop(){
-
+  
+  // If new card
   if (! mfrc522.PICC_IsNewCardPresent()){
     return;
   }
-
+  // If card is readable
   if ( ! mfrc522.PICC_ReadCardSerial()) {
     return;
   }
   
+  // Read data
   read_data();
 
-  //delay(1000);
-
-  //mfrc522.PICC_DumpDetailsToSerial(&(mfrc522.uid));
-  
-  /*
-  digitalWrite(ENABLE_PIN, HIGH);
-
-  delay(5000);
-
-  digitalWrite(ENABLE_PIN, LOW);
-  */
 }
